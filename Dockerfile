@@ -1,22 +1,18 @@
-FROM python:3.11-slim
+FROM python:3.11
 
-# Set working directory
 WORKDIR /app
 
-# ✅ Install netcat and system dependencies
-RUN apt-get update && apt-get install -y netcat-openbsd
-
-# Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Copy application code
 COPY . .
 
-# Copy and set entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Collect static files (optional)
+RUN python manage.py collectstatic --noinput
 
-# Run entrypoint, then start the app
-ENTRYPOINT ["/app/entrypoint.sh"]
+# 🛠 Run migrations and custom command
+RUN python manage.py migrate
+RUN python manage.py create_superuser
+
+# Start the app with Gunicorn
 CMD ["gunicorn", "LittleLemon.wsgi:application", "--bind", "0.0.0.0:8000"]
