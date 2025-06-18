@@ -1,18 +1,18 @@
-# Use official Python 3.11 image
-FROM python:3.11-slim
+FROM python:3.11
 
-# Set working directory
 WORKDIR /app
 
-# Copy your code to the container
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
 COPY . .
 
-# Install dependencies
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Collect static files (optional)
+RUN python manage.py collectstatic --noinput
 
-# Expose port (optional, depending on your app)
-EXPOSE 8000
+# 🛠 Run migrations and custom command
+RUN python manage.py migrate
+RUN python manage.py create_superuser
 
-# Command to run your Django app (customize if needed)
+# Start the app with Gunicorn
 CMD ["gunicorn", "LittleLemon.wsgi:application", "--bind", "0.0.0.0:8000"]
