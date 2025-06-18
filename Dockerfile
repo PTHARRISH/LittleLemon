@@ -11,8 +11,9 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 # 🛠 Run migrations and custom command
-RUN python manage.py migrate
-RUN python manage.py create_superuser
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
+ENTRYPOINT ["/app/entrypoint.sh"]
 # Start the app with Gunicorn
 CMD ["gunicorn", "LittleLemon.wsgi:application", "--bind", "0.0.0.0:8000"]
