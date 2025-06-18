@@ -1,19 +1,22 @@
-FROM python:3.11
+FROM python:3.11-slim
 
+# Set working directory
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Install system dependencies
+RUN apt-get update && apt-get install -y netcat
 
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy your app code
 COPY . .
 
-# Collect static files (optional)
-RUN python manage.py collectstatic --noinput
-
-# 🛠 Run migrations and custom command
+# Copy and make the entrypoint script executable
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
+# Run entrypoint and then the app
 ENTRYPOINT ["/app/entrypoint.sh"]
-# Start the app with Gunicorn
 CMD ["gunicorn", "LittleLemon.wsgi:application", "--bind", "0.0.0.0:8000"]
